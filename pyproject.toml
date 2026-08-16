@@ -1,52 +1,44 @@
-[tool.poetry]
-name = "client_cabinet"
+[project]
+name = "backend-banking-widget"
 version = "0.1.0"
-description = ""
-authors = ["Pavel Laykov <i-likesoft@yandex.ru>"]
-readme = "README.md"
+description = "Это бэкенд банковского виджете клиента."
+authors = [
+    {name = "Dmitrii Goldyrev",email = "dharani@mail.ru"}
+]
+requires-python = ">=3.14"
+dependencies = [
+]
 
-[tool.poetry.dependencies]
-python = "^3.14"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 lint = [
     "flake8 (>=7.3.0,<8.0.0)",
-    "mypy (>=2.3.0,<3.0.0)",
-    "black (>=26.5.1,<27.0.0)",
-    "isort (>=8.0.1,<9.0.0)"
+    "isort (>=8.0.1,<9.0.0)",
+    "black (>=26.3.1,<27.0.0)",
+    "mypy (>=1.20.0,<2.0.0)"
 ]
-dev = [
-    "mypy (>=2.3.0,<3.0.0)"
-]
-
-[tool.mypy]
-disallow_untyped_defs = true
-no_implicit_optional = true
-warn_return_any = true
-exclude = '.venv'
 
 [tool.black]
-# Максимальная длина строки
+# максимальная длина строки
 line-length = 119
-# Файлы, которые не нужно форматировать
 exclude = '''
 (
   /(
-      \.eggs         # Исключить несколько общих каталогов
     | \.git          # в корне проекта
-    | \.hg
-    | \.mypy_cache
-    | \.tox
-    | \.venv
-    | dist
   )/
 )
 '''
 
-[tool.poetry.packages]
-include = "masks"
-from = "src"
+[tool.isort]
+# максимальная длина строки
+line_length = 119
+multi_line_output = 3
+
+[tool.mypy]
+disallow_untyped_defs = true  # запрещает объявлять функции без аннотации типов
+warn_return_any = true
+exclude = 'venv'
