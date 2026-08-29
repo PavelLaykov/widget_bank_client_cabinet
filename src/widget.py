@@ -1,29 +1,41 @@
-# Импорт встроенных модулей Python - re и datetime
-import re
 from datetime import datetime
 
-# Импорт функций проекта из masks
-from src.masks import get_mask_account, get_mask_card_number
+from src.masks import get_mask_card_number, get_mask_account
 
 
 def mask_account_card(account_card: str) -> str:
-    """Маскирует полученный номер карты или счета"""
+    """Функция обрабатывает информацию о картах и о счетах. Возвращает тип и замаскированный номер"""
+    try:
+        if not account_card or account_card.strip() == "":
+            raise ValueError("Пустая строка")
 
-    if "Счет" in account_card:  # Создается маска для счета
-        letters_part = "".join(re.findall(r"\D+", account_card))
-        numbers_part = "".join(re.findall(r"\d+", account_card))
-        hidden_account_card = f"{letters_part} {get_mask_account(numbers_part)}"
-    else:  # Создается маска для номера карты
-        letters_part = "".join(re.findall(r"\D+", account_card))
-        numbers_part = "".join(re.findall(r"\d+", account_card))
-        hidden_account_card = f"{letters_part} {get_mask_card_number(numbers_part)}"
+        list_info = account_card.split()
 
-    return hidden_account_card
+        if len(list_info) < 2:
+            raise ValueError("Нужно вести тип и номер карты или счета")
+
+        card_type = " ".join(list_info[:-1])
+        number = list_info[-1]
+        number = number.replace(" ", "").replace("-", "")
+
+        if not number.isdigit():
+            raise ValueError("Номер должен содержать только цифры")
+
+        if len(number) == 16:
+            masked = get_mask_card_number(number)
+            return f"{card_type} {masked}"
+        elif len(number) == 20:
+            masked = get_mask_account(number)
+            return f"{card_type} {masked}"
+        else:
+            raise ValueError(f"Длина номера {len(number)}. Нужно 16, либо 20")
+
+    except ValueError as e:
+        return f"Ошибка: {e}"
 
 
-def get_date(date_iso_8601: str) -> str:
-    """Конвертирует дату из международного стандарта в обычный формат 'ДД.ММ.ГГГГ'"""
+def get_date(date_now: str) -> str:
+    """Функция принимает на вход строку с датой в одном формате и возвращает строку в другом формате"""
+    date_format = datetime.fromisoformat(date_now)
+    return date_format.strftime("%d.%m.%Y")
 
-    formatted_date = datetime.strptime(date_iso_8601, "%Y-%m-%dT%H:%M:%S.%f")
-
-    return formatted_date.strftime("%d.%m.%Y")

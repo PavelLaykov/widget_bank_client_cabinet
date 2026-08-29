@@ -1,22 +1,24 @@
 def get_mask_card_number(card_number: str) -> str:
-    """Функция принимает на вход номер карты и возвращает его замаскированным."""
+    """Функция получает номер карты пользователя и возвращает замаскированный номер"""
 
-    # Превращаем номер карты в строку, если пришло число
-    card_number_str = str(card_number)
+    try:
+        card_number = card_number.replace(" ", "")
+        if len(card_number) != 16 or not card_number.isdigit():
+            raise ValueError(f"Номер карты должен содержать 16 цифр. Получено {len(card_number)}")
+        return f"{card_number[:4]} {card_number[4:6]}** **** {card_number[-4:]}"
 
-    # Вставление пробела после каждых четыре знака
-    card_mask = card_number_str[0:4] + " " + card_number_str[4:6] + "**" + " " + "****" + " " + card_number_str[12:16]
-
-    return card_mask
+    except ValueError as e:
+        return f"Ошибка: {e}"
 
 
 def get_mask_account(account_number: str) -> str:
-    """Функция принимает на вход номер счета и возвращает его замаскированным."""
+    """Функция принимает номер счета и выводит его маску"""
 
-    # Превращаем номер счета в строку, если пришло число
-    account_number_str = str(account_number)
+    try:
+        account_number = account_number.replace(" ", "")
+        if len(account_number) != 20 or not account_number.isdigit():
+            raise ValueError(f"Номер счета должен содержать 20 цифр. Получено {len(account_number)}")
+        return f"**{account_number[-4:]}"
 
-    # Берем последние 4 цифры и добавляем две звездочки перед ними
-    account_mask = f"**{account_number_str[-4:]}"
-
-    return account_mask
+    except ValueError as e:
+        return f"Ошибка: {e}"
