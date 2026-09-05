@@ -1,82 +1,76 @@
-from typing import Any
-
 import pytest
 
-from src.widget import mask_account_card, get_date
+from src.widget import mask_card_number, get_date
 
 
-def test_mask_account_card_visa(card_number: Any) -> None:
-    """Проверяем, что функция правильно маскирует карту VISA."""
-    result = mask_account_card(f"Visa {card_number}")
-    assert result == "Visa 1234 56** **** 3456"
-
-
-def test_mask_account_card_mastercard(card_number: Any) -> None:
-    """Проверяем, что функция правильно маскирует карту Mastercard."""
-    result = mask_account_card(f"Mastercard {card_number}")
-    assert result == "Mastercard 1234 56** **** 3456"
-
-
-def test_mask_account_card_account(account_number: Any) -> None:
-    """Проверяем маскировку счета."""
-    result = mask_account_card(f"Счет {account_number}")
-    assert result == "Счет **7890"
-
-
-def test_mask_account_card_with_spaces() -> None:
-    """Проверяем обработку номера с пробелами."""
-    result = mask_account_card("Visa 1234567890123456")
-    assert result == "Visa 1234 56** **** 3456"
-
-
-@pytest.mark.parametrize("card_type", ["Visa", "Mastercard", "Мир"])
-def test_all_cards(card_type: Any, card_number: Any) -> None:
-    """Параметризованный тест: проверяем маскировку разных типов карт."""
-    result = mask_account_card(f"{card_type} {card_number}")
-    assert "****" in result
-
-
-def test_mask_account_card_error_short() -> None:
-    """Проверяем ошибку при коротком номере."""
-    result = mask_account_card("Visa 1234567890")
-    assert "Ошибка" in result or "Существует" in result
-
-
-def test_mask_account_card_error_empty() -> None:
-    """Проверяет ошибку при пустой строке."""
-    result = mask_account_card("")
-    assert "Ошибка" in result or "существует" in result
-
-
-def test_get_date_normal(date_src: Any) -> None:
-    """Проверяет преобразование обычной даты."""
-    result = get_date(date_src)
-    assert result == "25.12.2024"
-
-
-def test_get_date_with_time(date_src: Any) -> None:
-    """Проверяет преобразование даты с временем."""
-    result = get_date(f"{date_src}T15:30:00")
-    assert result == "25.12.2024"
-
-
-def test_get_date_error_empty() -> None:
-    """Проверяет ошибку при пустой строке."""
-    with pytest.raises(Exception):
-        get_date("")
+# Тестирование файла src.masks функции mask_card_number
+# Параметризация для def mask_card_number
+@pytest.mark.parametrize(
+    "input_card, output_card",
+    [
+        ("Visa Platinum 7000792289606361", "Visa Platinum 7000 79** **** 6361"),
+        ("Счет 64686473678894779589", "Счет **9589"),
+        ("Maestro 1596837868705199", "Maestro 1596 83** **** 5199"),
+        ("MasterCard 7158300734726758", "MasterCard 7158 30** **** 6758"),
+        ("Счет 35383033474447895560", "Счет **5560"),
+    ],
+)
+def test_mask_card_number(input_card: str, output_card: str) -> None:
+    """Тест на кодирование номера"""
+    assert mask_card_number(input_card) == output_card
 
 
 @pytest.mark.parametrize(
-    "invalid_date",
+    "card_input",
     [
+        "Visa Platinum 70007922896361",
+        "Счет 646864736788979589",
         "",
-        "25.12.2024",
-        "2024-13-01",
-        "2024-02-30",
-        "привет мир",
+        " ",
+        "Visa Platinum hjdlghwtpbcdfgju",
+        "Счет sss8647367889477958s",
     ],
 )
-def test_get_date_errors(invalid_date: Any) -> None:
-    """Параметризованный тест: проверяет ошибки при неверных форматах даты."""
-    with pytest.raises(Exception):
-        get_date(invalid_date)
+def test_mask_card_number_error(card_input: str) -> None:
+    """Тест на различные случаи невалидного ввода для маскировки номера карты"""
+    with pytest.raises(ValueError):
+        mask_card_number(card_input)
+
+
+# Тест src/widget.py функции def get_date
+# Параметризация для def get_date
+@pytest.mark.parametrize(
+    "input_date, out_data",
+    [
+        ("2024-03-11T02:26:18.671407", "11.03.2024"),
+        ("2024-03-11T02:26:18", "11.03.2024"),
+        ("2024-03-11T00:00:00", "11.03.2024"),
+        ("2024-03-11T23:59:59.999999", "11.03.2024"),
+        ("0001-01-01T00:00:00", "01.01.0001"),
+        ("9999-12-31T23:59:59", "31.12.9999"),
+        ("2024-03-11T02:26:18.123", "11.03.2024"),
+        ("2024-03-11T02:26:18.1", "11.03.2024"),
+    ],
+)
+def test_date_formats(input_date: str, out_data: str) -> None:
+    """Тест различных форматов даты и времени"""
+    assert get_date(input_date) == out_data
+
+
+def test_basic_date_conversion() -> None:
+    """Тест базового преобразования даты"""
+    assert get_date("2024-03-11T02:26:18.671407") == "11.03.2024"
+
+
+@pytest.mark.parametrize(
+    "no_date_string",
+    [
+        "",  # Пустая строка
+        "   ",  # Пробелы
+        "12:26:18",  # Только время
+    ],
+)
+def test_strings_without_date(no_date_string: str) -> None:
+    """Тест строк, где отсутствует дата"""
+    with pytest.raises(ValueError):
+        get_date(no_date_string)
