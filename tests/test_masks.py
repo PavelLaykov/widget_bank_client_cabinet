@@ -41,7 +41,7 @@ def test_get_mask_card_valid(card_number: list[tuple[str, str]]) -> None:
 def test_get_mask_card_number_invalid(invalid_input: str, expected_exception: Exception) -> None:
     """Тест на ValueError"""
     with pytest.raises(ValueError):
-        get_mask_card_number(int(invalid_input))
+        get_mask_card_number(invalid_input)
 
 
 # Тестирование файла src.masks функции get_mask_account

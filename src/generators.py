@@ -1,4 +1,5 @@
-from typing import Generator, Iterator
+import itertools
+from typing import Generator, Iterator, Any
 
 
 def filter_by_currency(transactions: list[dict], currency: str) -> Iterator[dict]:
@@ -22,20 +23,28 @@ def transaction_descriptions(transactions: list[dict]) -> Generator:
         yield transaction.get("description")
 
 
-def card_number_generator(start: int, stop: int) -> list:
-    """Генерирует номер карты в заданном диапазоне"""
+def card_number_generator(start: int, stop: int) -> Generator[str, Any, str]:
+    """Генерирует номер карты в заданном диапазоне, где
+    prefix - первые цифры в виде строки,
+    length - общая длина номера карты"""
+    length = 16
+    prefix = "0000"
     if not isinstance(start, int) or not isinstance(stop, int):
         raise TypeError("Некорректный номер")
     if start < 1 or stop > 9999999999999999 or start > stop:
         raise ValueError("Неправильные вводимые данные")
-    numb_card = []
-    for number in range(start, stop + 1):
-        # Форматируем число как строку с ведущими нулями и разбиваем на группы по 4 цифры
-        format_number = str("{:16d}".format(number)).replace(" ", "0")
-        card_number = f"{format_number[:4]} {format_number[4:8]} {format_number[8:12]} {format_number[12:]}"
-        numb_card.append(card_number)
-    return numb_card
 
+    number_card = []
+    zeros_count = length - len(prefix)
+
+    for counter in itertools.count(1):
+        counter_str = f"{counter:0{zeros_count}d}"
+        card_number = ''.join(prefix + counter_str)
+        # Форматируем число как строку с ведущими нулями и разбиваем на группы по 4 цифры
+        number_card = ' '.join([card_number[i:i+4] for i in range(0, len(card_number), 4)])
+        yield number_card
+
+    return number_card
 
 # if __name__ == '__main__':
 #     transactions = [
