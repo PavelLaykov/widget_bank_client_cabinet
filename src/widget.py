@@ -8,12 +8,12 @@ def mask_card_number(sistem_number_card: str) -> str:
     if "Счет" in sistem_number_card:
         sistem_card_str = sistem_number_card[:-20].strip()
         number_card_str = sistem_number_card[-20:]
-        number_card_str = get_mask_account(int(number_card_str))
+        number_card_str = get_mask_account(number_card_str)
         return f"{sistem_card_str} {number_card_str}"
     else:
         sistem_card_str = sistem_number_card[:-16].strip()
         number_card_str = sistem_number_card[-16:]
-        number_card_str = get_mask_card_number(int(number_card_str))
+        number_card_str = get_mask_card_number(number_card_str)
         return f"{sistem_card_str} {number_card_str}"
 
 

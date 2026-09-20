@@ -1,7 +1,7 @@
 # Импорт функция из модулей masks.py и widget.py
 from src.masks import get_mask_account, get_mask_card_number
 from src.processing import filter_by_state, sort_by_date
-from src.widget import get_date, mask_account_card
+from src.widget import get_date, mask_card_number
 
 
 # Проверка правильной работы функций из модуля masks
@@ -22,7 +22,7 @@ def checking_masks_functions() -> None:
 def checking_widget_functions1(account_card: str) -> str:
     """Тест правильности маскировки номера карты и счета"""
 
-    hidden_account_card = mask_account_card(account_card)
+    hidden_account_card = mask_card_number(account_card)
 
     return hidden_account_card
 
