@@ -1,5 +1,6 @@
 import os
 
+import dotenv
 import requests
 from dotenv import load_dotenv
 
@@ -10,7 +11,7 @@ API_KEY = os.getenv("API_KEY")
 
 
 def transactions_sum(file: str) -> float:
-    """Принимает транзакции и возвращает их по валюте"""
+    """Функция принимает транзакции и возвращает их по валюте"""
     transactions_list = get_transaction(file)
     total_sum_rub = 0
 
@@ -20,7 +21,7 @@ def transactions_sum(file: str) -> float:
 
 
 def currency_conversion(transaction) -> float:
-    """Конвертирование валюты в рубли"""
+    """Функция конвертирования валюты в рубли"""
     headers = {"apikey": API_KEY}
 
     code = transaction.get("operationAmount", {}).get("currency", {}).get("code", "")
