@@ -6,10 +6,10 @@ from src.decorators import log
 
 
 def test_log(capsys: pytest.CaptureFixture) -> None:
-    """Тест декоратора log с выводом в консоль"""
+    """Тестирование декоратора log с выводом в консоль"""
 
     @log()
-    def func(x, y):
+    def func(x: int, y: int):
         return x + y
 
     func(1, 2)
@@ -18,7 +18,7 @@ def test_log(capsys: pytest.CaptureFixture) -> None:
 
 
 def test_log_file():
-    """Тест log file с записью в txt"""
+    """Тестирование log file с записью в txt"""
 
     @log(filename="test_log.txt")
     def func(x, y):
