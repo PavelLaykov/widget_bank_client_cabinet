@@ -16,7 +16,7 @@ transactions = [
 print(filter_by_state(transactions, "EXECUTED"))
 
 
-def sort_by_date(list_of_sort_date: List[Dict[str, Any]], descending=True) -> List[Dict[str, Any]]:
+def sort_by_date(list_of_sort_date: List[Dict[str, Any]], descending: object = True) -> List[Dict[str, Any]]:
     """Функция должна возвращать новый список, отсортированный по дате (date)"""
     return sorted(list_of_sort_date, key=lambda x: x.get("date", ""), reverse=descending)
 
