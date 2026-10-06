@@ -1,96 +1,173 @@
-# Импорт функция из модулей masks.py и widget.py
-from src.masks import get_mask_account, get_mask_card_number
+import datetime
+
+from src.banks_operations import search_operations
+from src.financial_operations import read_csv_transactions, read_excel_transactions
+from src.generators import filter_by_currency
 from src.processing import filter_by_state, sort_by_date
-from src.widget import get_date, mask_account_card
+from src.utils import get_transaction
+from src.widget import mask_card_number
 
 
-# Проверка правильной работы функций из модуля masks
-def checking_masks_functions() -> None:
-    """Тест на правильность маскировки номера карты и счета"""
+def main() -> None:
+    """
+    Функция для запуска всего проекта
+    :return: возвращает данные по запросу пользователя в формате
+    """
 
-    card_number = "7000792289606361"  # пример номера карты
-    account_number = "73654108430135874305"  # пример номера счета
+    # 1. Выбор формата файла
+    print("Привет! Добро пожаловать в программу работы с банковскими транзакциями.")
+    data = None
+    while data is None:
+        search_file = (
+            input(
+                """Выберите необходимый пункт меню:
+1. Получить информацию о транзакциях из JSON-файла
+2. Получить информацию о транзакциях из CSV-файла
+3. Получить информацию о транзакциях из XLSX-файла\n"""
+            )
+            .strip()
+            .lower()
+        )
+        if search_file == "1":
+            print("Для обработки выбран JSON-файл")
+            data = get_transaction("./data/operations.json")
 
-    masked_card = get_mask_card_number(card_number)
-    masked_account = get_mask_account(account_number)
+        elif search_file == "2":
+            print("Для обработки выбран CSV-файл")
+            data = read_csv_transactions("../transactions.csv")
 
-    print(f"Замаскированный номер карты: {masked_card}")
-    print(f"Замаскированный номер счета: {masked_account}")
+        elif search_file == "3":
+            print("Для обработки выбран XLSX-файл")
+            data = read_excel_transactions("../transactions_excel.xlsx")
 
-
-# Проверка правильности функций mask_account_card из модуля widget
-def checking_widget_functions1(account_card: str) -> str:
-    """Тест правильности маскировки номера карты и счета"""
-
-    hidden_account_card = mask_account_card(account_card)
-
-    return hidden_account_card
-
-
-# Проверка правильности работы функции get_date из модуля widget
-def checking_widget_functions2(date_iso_8601: str) -> str:
-    """Тест правильности извлечения даты в обычном формате из международного стандарта написания даты и времени"""
-
-    extracted_date = get_date(date_iso_8601)
-
-    return extracted_date
-
-
-# Проверка работы функций из модуля processing.py
-def checking_filter_by_state(my_list: list, state: str = "EXECUTED") -> list:
-    """Тест правильности фильтрации данных в виде списка словарей - my_list по 'state'"""
-    filtered_list = filter_by_state(my_list, state)
-
-    return filtered_list
+        else:
+            print(f"Введено неверное значение {search_file}")
+            continue
 
 
-def checking_sort_by_date(my_list: list, descending: bool = True) -> list:
-    """Тест правильности сортировки данных в виде списка словарей - my_list по 'date'"""
-    sorted_list = sort_by_date(my_list, descending)
+    # 2. Фильтрация по статусу операции
+    if data is None:
+        print("Получены пустые данные")
+        return
 
-    return sorted_list
+    filtered_data = None
+    while filtered_data is None:
+        operation_status = (
+            input(
+                "Введите статус, по которому необходимо выполнить фильтрацию.\n"
+                "Доступные для фильтровки статусы: EXECUTED, CANCELED, PENDING\n"
+            )
+            .strip()
+            .lower()
+        )
+
+        if operation_status in ["executed", "canceled", "pending"]:
+            filtered_data = filter_by_state(data, operation_status)  # type: ignore
+
+        else:
+            print(f"Статус операции {operation_status} недоступен ")
+            continue
+
+    # 3. Сортировка по дате
+    sorted_data = None
+    while sorted_data is None:
+        sorting_data_input = input("Отсортировать операции по дате? Да/Нет\n").lower().strip()
+        if sorting_data_input in ["да"]:
+            while True:
+                sort_ascending_descending = input("Отсортировать по возрастанию или по убыванию?\n").lower()
+                if sort_ascending_descending in ["по возрастанию", "по убыванию"]:
+                    if sort_ascending_descending == "по возрастанию":
+                        sorted_data = sort_by_date(filtered_data, not descending)
+                        break
+                    elif sort_ascending_descending == "по убыванию":
+                        sorted_data = sort_by_date(filtered_data, descending)
+                        break
+                else:
+                    sorted_data = sort_by_date(filtered_data, descending)
+                    print("Неправильно выбрана команда")
+                    continue
+        elif sorting_data_input in ["нет"]:
+            sorted_data = filtered_data
+            break
+        else:
+            print("Пожалуйста, введите 'Да' или 'Нет'")
+            continue
+
+    # 4. Фильтрация по валюте (рубли)
+    currency_data = None
+    while currency_data is None:
+        sorting_value = input("Выводить только рублевые транзакции? Да/Нет\n").lower()
+        if sorting_value in ["да"]:
+            currency = "RUB"
+            sorted_nominal = filter_by_currency(sorted_data, currency)
+            sorted_nominal_list = list(sorted_nominal)
+            if not sorted_nominal_list:
+                print("Рублевых транзакций не найдено")
+                currency_data = sorted_data
+            else:
+                currency_data = sorted_nominal_list
+        elif sorting_value in ["нет"]:
+            currency_data = sorted_data
+        else:
+            print("Пожалуйста, введите 'Да' или 'Нет'")
+            continue
+
+    # 5. Фильтрация по ключевому слову
+    final_data = None
+    while final_data is None:
+        sorting_by_word = input("Отфильтровать список транзакций по определенному слову в описании? Да/Нет\n").lower()
+        if sorting_by_word in ["да"]:
+            input_keyword = input("Введите слово для поиска в описании: ").strip().lower()
+            final_data = search_operations(currency_data, input_keyword)
+            print(final_data)
+        elif sorting_by_word in ["нет"]:
+            final_data = currency_data
+            print(final_data)
+        else:
+            print("Неправильно выбрана команда")
+            continue
+
+    # 6. Вывод результатов
+    print(f"\nРаспечатываю итоговый список транзакций...\n")
+    print(f"Всего банковских операций в выборке: {len(final_data)}\n")
+    if len(final_data) == 0:
+        print("Не найдено ни одной транзакции, подходящей под ваши условия фильтрации")
+
+    for transaction in final_data:
+        # Форматирование времени
+        date_transaction = transaction["date"]
+        try:
+            date = datetime.datetime.strptime(date_transaction, "%Y-%m-%dT%H:%M:%S.%f")
+        except ValueError:
+            date = datetime.datetime.strptime(date_transaction, "%Y-%m-%dT%H:%M:%SZ")
+        formatted_date = date.strftime("%d.%m.%Y")
+        print(f"{formatted_date} {transaction['description']}")
+
+        # Получение и маскировка номеров карт и счетов
+        transaction_number_card_to = str(transaction.get("to", ""))
+        transaction_number_card_from = str(transaction.get("from", ""))
+
+        transaction_to = transaction_number_card_to not in ["nan", "none", "", "<null>", "None"]
+        transaction_from = transaction_number_card_from not in ["nan", "none", "", "<null>", "None"]
+
+        if transaction_to and transaction_from:
+            print(
+                f"{mask_card_number(transaction_number_card_to)} "
+                f"-> {mask_card_number(transaction_number_card_from)}"
+            )
+        elif transaction_to:
+            print(f"{mask_card_number(transaction_number_card_to)}")
+
+        # Вывод суммы транзакций
+
+        try:
+            print(f"Сумма: {transaction['amount']} {transaction["currency_code"]}\n")
+        except KeyError:
+            print(
+                f"Сумма: {transaction['operationAmount']['amount']}"
+                f" {transaction["operationAmount"]["currency"]["name"]}\n"
+            )
 
 
-# Запуск функций
 if __name__ == "__main__":
-    checking_masks_functions()
-    print(checking_widget_functions1("Счет 64686473678894779589"))
-    print(checking_widget_functions2("2024-03-11T02:26:18.671407"))
-
-    """
-    Примеры входных данных для проверки функции модуля widget.py
-    Maestro 1596837868705199
-    Счет 64686473678894779589
-    MasterCard 7158300734726758
-    Счет 35383033474447895560
-    Visa Classic 6831982476737658
-    Visa Platinum 8990922113665229
-    Visa Gold 5999414228426353
-    Счет 73654108430135874305
-    """
-
-    # Данные для проверки функций из модуля processing.py
-
-    print(
-        checking_filter_by_state(
-            [
-                {"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"},
-                {"id": 939719570, "state": "EXECUTED", "date": "2018-06-30T02:08:58.425572"},
-                {"id": 594226727, "state": "CANCELED", "date": "2018-09-12T21:27:25.241689"},
-                {"id": 615064591, "state": "CANCELED", "date": "2018-10-14T08:21:33.419441"},
-            ],
-            "CANCELED",
-        )
-    )
-
-    print(
-        sort_by_date(
-            [
-                {"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"},
-                {"id": 939719570, "state": "EXECUTED", "date": "2018-06-30T02:08:58.425572"},
-                {"id": 594226727, "state": "CANCELED", "date": "2018-09-12T21:27:25.241689"},
-                {"id": 615064591, "state": "CANCELED", "date": "2018-10-14T08:21:33.419441"},
-            ],
-            False,
-        )
-    )
+    main()
