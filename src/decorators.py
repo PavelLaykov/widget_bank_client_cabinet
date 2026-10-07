@@ -12,14 +12,14 @@ def log(filename: object = None) -> Callable:
                 if filename is None:
                     print(f"{func.__name__} ok")
                 else:
-                    with open(filename, "a", encoding="utf-8") as file:
+                    with open('filename', "a", encoding="utf-8") as file:
                         file.write(f"{func.__name__} ok\n")
                 return result
             except Exception as e:
                 if filename is None:
                     print(f"{func.__name__} error: {e.__class__.__name__}: {e}. Inputs: {args}, {kwargs}")
                 else:
-                    with open(filename, "a", encoding="utf-8") as file:
+                    with open('filename', "a", encoding="utf-8") as file:
                         file.write(f"{func.__name__} error: {str(e)}. Inputs: {args}, {kwargs}\n")
                 raise
 

@@ -21,12 +21,11 @@ def main() -> None:
         search_file = (
             input(
                 """Выберите необходимый пункт меню:
-1. Получить информацию о транзакциях из JSON-файла
-2. Получить информацию о транзакциях из CSV-файла
-3. Получить информацию о транзакциях из XLSX-файла\n"""
+                   1. Получить информацию о транзакциях из JSON-файла
+                   2. Получить информацию о транзакциях из CSV-файла
+                   3. Получить информацию о транзакциях из XLSX-файла\n"""
             )
             .strip()
-            .lower()
         )
         if search_file == "1":
             print("Для обработки выбран JSON-файл")
@@ -34,11 +33,11 @@ def main() -> None:
 
         elif search_file == "2":
             print("Для обработки выбран CSV-файл")
-            data = read_csv_transactions("../transactions.csv")
+            data = read_csv_transactions("./transactions.csv")
 
         elif search_file == "3":
             print("Для обработки выбран XLSX-файл")
-            data = read_excel_transactions("../transactions_excel.xlsx")
+            data = read_excel_transactions("./transactions_excel.xlsx")
 
         else:
             print(f"Введено неверное значение {search_file}")
@@ -58,10 +57,9 @@ def main() -> None:
                 "Доступные для фильтровки статусы: EXECUTED, CANCELED, PENDING\n"
             )
             .strip()
-            .lower()
         )
 
-        if operation_status in ["executed", "canceled", "pending"]:
+        if operation_status in ["EXECUTED", "CANCELED", "PENDING"]:
             filtered_data = filter_by_state(data, operation_status)  # type: ignore
 
         else:
@@ -140,7 +138,7 @@ def main() -> None:
             date = datetime.datetime.strptime(date_transaction, "%Y-%m-%dT%H:%M:%S.%f")
         except ValueError:
             date = datetime.datetime.strptime(date_transaction, "%Y-%m-%dT%H:%M:%SZ")
-        formatted_date = date.strftime("%d.%m.%Y")
+        formatted_date = datetime.fromisoformat(date).strftime("%d.%m.%Y")
         print(f"{formatted_date} {transaction['description']}")
 
         # Получение и маскировка номеров карт и счетов
